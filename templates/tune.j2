@@ -1,0 +1,1 @@
+/usr/share/dse/tools/preflight {% if dse_ssd %}--ssd={{ item.device }}{% else %}--nossd{% endif %} --device={{ item.device }}

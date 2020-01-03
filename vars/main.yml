@@ -1,0 +1,2 @@
+dse_ssd: true
+dse_device: "{{ ansible_mounts.device }}"

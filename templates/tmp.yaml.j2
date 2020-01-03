@@ -1,0 +1,4 @@
+{% set comma = joiner(", ") %}
+" {% for host in groups['dse'] %}{{ comma() }}{{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}{% endfor %} "
+
+

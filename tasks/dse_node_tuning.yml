@@ -1,0 +1,8 @@
+- name: Deploy preflight check op
+  template: src=templates/tune.j2 dest=/root/dse_tune.sh
+  tags: pre_tune
+  with_items: "{{ ansible_mounts }}"
+
+- name: Run preflight check
+  shell: /bin/sh /root/dse_tune.sh
+  failed_when: false  

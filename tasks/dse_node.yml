@@ -1,0 +1,70 @@
+- name: Install apt-transport-https
+  apt: name=apt-transport-https state=installed
+
+- name: Set sources.list (https)
+  shell:  echo "deb https://{{ dse.username }}:{{ dse.password }}@debian.datastax.com/enterprise stable main" > /etc/apt/sources.list.d/datastax.list
+
+- name: Get repo key
+  shell: curl -L https://debian.datastax.com/debian/repo_key | apt-key add -
+
+# Run the equivalent of "apt-get update" as a separate step
+- name: Update packages
+  apt: update_cache=yes
+
+- name: Install DSE packages (apt)
+  apt:
+    name: dse-full
+    state: installed
+  with_items:
+    - dse-full #={{ dse_version }}*
+  when: ansible_os_family == "Debian"
+
+- name: Deploy DSE conf (cassandra.yaml)
+  template: src=templates/cassandra.yaml.j2 dest=/etc/dse/cassandra/cassandra.yaml mode=0644
+  tags:
+    - dse_conf
+
+- name: Deploy DSE GossipingPropertyFileSnitch (cassandra-rackdc.properties)
+  copy: src=templates/cassandra-rackdc.properties dest=/etc/dse/cassandra/cassandra-rackdc.properties
+  tags:
+    - dse_conf
+
+- name: Install Opscenter Agent dependencies
+  apt: 
+    name: "{{ item }}" 
+    state: installed
+  with_items:
+    - sudo
+    - apt-utils
+  when: ansible_os_family == "Debian"
+  tags:
+    - dse_agent
+
+- name: Install Opscenter Agent (apt)
+  apt: name=datastax-agent state=latest
+  when: ansible_os_family == "Debian"
+  tags:
+    - dse_agent
+
+- name: Set stomp interface
+  template: src=templates/address.yaml.j2 dest=/var/lib/datastax-agent/conf/address.yaml mode=0644
+  tags:
+    - dse_agent_conf
+    - dse_conf
+
+- name: Start agent
+  service: name=datastax-agent state=restarted enabled=yes
+  tags:
+    - dse_agent
+    - dse_agent_conf
+
+- name: Enable DSE Graph
+  replace: 
+    dest: /etc/default/dse 
+    regexp: 'GRAPH_ENABLED=0'
+    replace: 'GRAPH_ENABLED=1'
+
+- name: Make sure DSE is running
+  service: name=dse state=started enabled=yes
+  tags:
+    - services

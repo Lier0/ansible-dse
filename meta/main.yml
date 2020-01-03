@@ -1,0 +1,23 @@
+---
+
+dependencies: 
+  - role: ansible-java
+  - role: ansible-ferm
+    src: https://github.com/leucos/ansible-ferm.git
+    when: ferm_enabled | default(false)
+#  - role: ansible-datadog-agent
+#    src: https://github.com/leucos/ansible-datadog-agent.git
+#    when: datadog_api_key | default(false)
+
+galaxy_info:
+  author: Ludovic Hautier
+  company: Mnemotix
+  description: Ansible dse role
+  license: GPLv3
+  min_ansible_version: 1.6
+  platforms:
+  - name: Debian
+    versions:
+    - 8
+  categories:
+  - database
